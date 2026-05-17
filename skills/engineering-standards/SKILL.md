@@ -1,6 +1,6 @@
 ---
 name: engineering-standards
-description: Complete frontend engineering standards for code quality, React patterns, TypeScript, CSS architecture, accessibility, testing, performance, security, and code review. Apply to every code task — writing, reviewing, debugging, refactoring. These rules are non-negotiable and override convenience or speed.
+description: Complete frontend engineering standards for code quality, React patterns, TypeScript, CSS architecture, accessibility, testing, performance, security, and code review. Apply to every code task, writing, reviewing, debugging, refactoring. These rules are non-negotiable and override convenience or speed.
 trigger: Always active for any code generation, review, debugging, or refactoring task.
 enforcement: mandatory
 ---
@@ -11,25 +11,25 @@ These standards apply to every line of code written, reviewed, or refactored. No
 
 ---
 
-## FOUR-STATE RULE — EVERY ASYNC OPERATION
+## FOUR-STATE RULE: EVERY ASYNC OPERATION
 
 AI generates code that works when everything goes right. Production code handles when things go wrong.
 
 Every fetch, API call, or async operation MUST handle four states:
 
-1. **Loading** — skeleton or spinner visible before data arrives
-2. **Error** — meaningful error message, retry mechanism, or fallback
-3. **Empty** — explicit empty state with action to resolve it
-4. **Success** — the data renders correctly
+1. **Loading.** Skeleton or spinner visible before data arrives
+2. **Error.** Meaningful error message, retry mechanism, or fallback
+3. **Empty.** Explicit empty state with action to resolve it
+4. **Success.** The data renders correctly
 
 If code only handles success, it is not production-ready. Reject it on review.
 
 ```typescript
-// WRONG — happy path only
+// WRONG, happy path only
 const { data } = await fetchUsers();
 return <UserList users={data} />;
 
-// RIGHT — all four states
+// RIGHT: all four states
 function UserList() {
   const { data, error, isLoading } = useUsers();
 
@@ -44,17 +44,17 @@ function UserList() {
 
 ## TYPESCRIPT
 
-### Strict Mode — Non-Negotiable
+### Strict Mode: Non-Negotiable
 
 Every project: `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`.
 
 ### Forbidden Patterns
 
-- `any` — never. Use `unknown` and narrow with type guards.
-- `as` type assertions — only with proof (instanceof check, discriminated union).
+- `any`, never. Use `unknown` and narrow with type guards.
+- `as` type assertions, only with proof (instanceof check, discriminated union).
 - `@ts-ignore` / `@ts-expect-error` without a comment explaining why.
-- Non-null assertion (`!`) — use optional chaining or explicit guards.
-- `enum` — use `as const` objects instead. Enums have runtime cost and quirky behavior.
+- Non-null assertion (`!`), use optional chaining or explicit guards.
+- `enum`, use `as const` objects instead. Enums have runtime cost and quirky behavior.
 
 ```typescript
 // WRONG
@@ -75,11 +75,11 @@ const Status = { Active: 'active', Inactive: 'inactive' } as const;
 - All function parameters: `Readonly<>` when the function should not mutate them.
 - All component props: defined as interfaces, not inline types.
 - All re-exports: `export type { X }` for type-only exports (isolatedModules compliance).
-- Generic components: explicit constraint + default — `<T extends ElementType = 'button'>`.
+- Generic components: explicit constraint + default: `<T extends ElementType = 'button'>`.
 - Discriminated unions for state machines, not boolean flags.
 
 ```typescript
-// WRONG — boolean flags
+// WRONG, boolean flags
 interface State {
   isLoading: boolean;
   isError: boolean;
@@ -87,7 +87,7 @@ interface State {
   error: Error | null;
 }
 
-// RIGHT — discriminated union
+// RIGHT, discriminated union
 type State =
   | { status: 'idle' }
   | { status: 'loading' }
@@ -115,16 +115,16 @@ type State =
 - `useMemo`/`useCallback`: only when profiling shows measurable gain or reference stability matters.
 - `useState`: prefer single state object for related state that updates together.
 - `useRef`: for DOM refs, abort controllers, values that don't trigger re-renders.
-- Never call `setState` during render — derive with `useMemo`.
+- Never call `setState` during render, derive with `useMemo`.
 - Never nest hooks inside conditions or loops.
 
 ```typescript
-// WRONG — no cleanup, race condition
+// WRONG, no cleanup, race condition
 useEffect(() => {
   fetchData().then(setData);
 }, [id]);
 
-// RIGHT — abort controller, cleanup, error handling
+// RIGHT: abort controller, cleanup, error handling
 useEffect(() => {
   const controller = new AbortController();
 
@@ -147,15 +147,15 @@ useEffect(() => {
 ### State Management
 
 - Co-locate state where it's used. Don't hoist to global store unless 2+ unrelated components need it.
-- No derived state in store — compute with selectors or `useMemo`.
+- No derived state in store, compute with selectors or `useMemo`.
 - Context: use for dependency injection (theme, auth), not for frequently changing state.
 - Async operations: dispatch started/success/failure actions. Never leave error paths unhandled.
 
 ### Props
 
-- Boolean props: `is`/`has`/`allow`/`enable` prefix — `isLoading`, `hasError`.
-- Event handlers: `handle` prefix for component handlers, `on` prefix for prop callbacks — `handleClick`, `onClick`.
-- No boolean parameters in functions — use options objects instead.
+- Boolean props: `is`/`has`/`allow`/`enable` prefix: `isLoading`, `hasError`.
+- Event handlers: `handle` prefix for component handlers, `on` prefix for prop callbacks: `handleClick`, `onClick`.
+- No boolean parameters in functions, use options objects instead.
 
 ```typescript
 // WRONG
@@ -175,7 +175,7 @@ function createUser(name: string, options: { isAdmin?: boolean; sendEmail?: bool
 - No hardcoded hex values, pixel values, or font names in component CSS.
 - Option B pattern: base selector declares structure with `--_` intermediate variables, variant selectors swap values.
 - Data attribute selectors: `[data-variant="primary"]`, not class-based variants.
-- Plain CSS files with data attributes — no CSS-in-JS, no CSS Modules, no Tailwind in component library code.
+- Plain CSS files with data attributes, no CSS-in-JS, no CSS Modules, no Tailwind in component library code.
 
 ### CSS Rules
 
@@ -198,7 +198,7 @@ All UI output must comply with the production-ui-standard skill. Key checks:
 
 ---
 
-## ACCESSIBILITY — NON-NEGOTIABLE
+## ACCESSIBILITY: NON-NEGOTIABLE
 
 - Every interactive element: keyboard-reachable and operable.
 - Every icon-only button: `aria-label`.
@@ -217,19 +217,19 @@ All UI output must comply with the production-ui-standard skill. Key checks:
 
 ## ERROR HANDLING
 
-- No empty `catch` blocks — at minimum log with context or re-throw.
+- No empty `catch` blocks: at minimum log with context or re-throw.
 - API errors: distinguish 4xx (user error) from 5xx (server error) in UI messaging.
 - Form validation: show inline errors, not just toasts.
 - Network errors: provide retry mechanism or clear feedback.
-- `Promise.all`: handle errors — one rejection must not crash the entire batch. Use `Promise.allSettled` when partial success is acceptable.
+- `Promise.all`: handle errors, one rejection must not crash the entire batch. Use `Promise.allSettled` when partial success is acceptable.
 - Every `switch` statement: `default` case required.
 - Null/undefined from API: never assume shape matches TypeScript interface at runtime. Validate.
 
 ```typescript
-// WRONG — assumes API shape
+// WRONG: assumes API shape
 const userName = response.data.user.name;
 
-// RIGHT — defensive
+// RIGHT, defensive
 const userName = response.data?.user?.name ?? 'Unknown';
 ```
 
@@ -238,13 +238,13 @@ const userName = response.data?.user?.name ?? 'Unknown';
 ## PERFORMANCE
 
 - No O(n²) operations on arrays that could exceed 100 items.
-- No `new RegExp()` inside render — extract to module scope or `useMemo`.
+- No `new RegExp()` inside render, extract to module scope or `useMemo`.
 - `key` props: stable identifiers, never array indices (unless static, never reordered).
 - Lazy load routes and heavy components: `React.lazy` + `Suspense`.
 - No layout thrashing: batch DOM reads before DOM writes.
 - Images: use `loading="lazy"` for below-fold images, specify `width`/`height` to prevent CLS.
 - Bundle: code-split at route level minimum. Monitor with build:size script.
-- Memoization: profile first. Don't `useMemo` everything — measure before optimizing.
+- Memoization: profile first. Don't `useMemo` everything, measure before optimizing.
 
 ---
 
@@ -266,8 +266,8 @@ const userName = response.data?.user?.name ?? 'Unknown';
 
 ### Structure
 
-- Test file: adjacent to source — `Component.test.tsx`.
-- Test names: describe behavior, not implementation — `"shows error when API returns 400"` not `"calls setError"`.
+- Test file: adjacent to source: `Component.test.tsx`.
+- Test names: describe behavior, not implementation: `"shows error when API returns 400"` not `"calls setError"`.
 - No test depends on another test's state.
 - Mock at boundaries (API calls, browser APIs), not internal functions.
 
@@ -292,7 +292,7 @@ describe('UserList', () => {
 ```
 
 - Accessibility tests: use `jest-axe` or `vitest-axe` for automated a11y checks.
-- No `data-testid` as the primary query strategy — prefer `getByRole`, `getByLabelText`, `getByText`.
+- No `data-testid` as the primary query strategy, prefer `getByRole`, `getByLabelText`, `getByText`.
 - Test user behavior, not implementation details. Click buttons, type in inputs, verify visible output.
 
 ---
@@ -301,9 +301,9 @@ describe('UserList', () => {
 
 ### Files
 
-- Components: `PascalCase` — `FormUpload.tsx`
-- Hooks: `camelCase` with `use` prefix — `useClickOutside.ts`
-- Utils: `camelCase` — `formatDate.utils.ts`
+- Components: `PascalCase`: `FormUpload.tsx`
+- Hooks: `camelCase` with `use` prefix: `useClickOutside.ts`
+- Utils: `camelCase`: `formatDate.utils.ts`
 - Tests: `*.test.tsx` / `*.test.ts`
 - Styles: `*.css` (design system), `*.module.scss` (app-level)
 - Constants: `SCREAMING_SNAKE_CASE` in files, `camelCase` filenames
@@ -314,8 +314,8 @@ describe('UserList', () => {
 - Hooks: `useCamelCase`
 - Functions/variables: `camelCase`
 - Constants: `SCREAMING_SNAKE_CASE`
-- Types/Interfaces: `PascalCase` — `interface ButtonProps`
-- Generic type params: single uppercase letter or descriptive — `T`, `TElement`
+- Types/Interfaces: `PascalCase`: `interface ButtonProps`
+- Generic type params: single uppercase letter or descriptive: `T`, `TElement`
 - Boolean: `is`/`has`/`should`/`can` prefix
 - Event handlers: `handle` prefix (component), `on` prefix (prop)
 
@@ -327,7 +327,7 @@ describe('UserList', () => {
 - Types: `feat`, `fix`, `refactor`, `style`, `perf`, `docs`, `test`, `chore`, `build`, `ci`, `revert`
 - One logical change per commit.
 - Remove all `console.log` before committing.
-- No commented-out code — git has history.
+- No commented-out code, git has history.
 - PR: one concern per PR. Don't mix features with refactors.
 
 ---
@@ -342,7 +342,7 @@ describe('UserList', () => {
 
 ---
 
-## FORBIDDEN PATTERNS — REJECT ON SIGHT
+## FORBIDDEN PATTERNS: REJECT ON SIGHT
 
 | Pattern | Why | Fix |
 |---------|-----|-----|
@@ -369,7 +369,7 @@ describe('UserList', () => {
 
 ---
 
-## REVIEW CHECKLIST — RUN ON EVERY REVIEW
+## REVIEW CHECKLIST: RUN ON EVERY REVIEW
 
 ### Pre-flight (before reading code)
 
@@ -379,7 +379,7 @@ describe('UserList', () => {
 
 ### Code Quality
 
-4. TypeScript strict — no `any`, no unsafe `as`, no `!`
+4. TypeScript strict, no `any`, no unsafe `as`, no `!`
 5. Every async operation handles four states (loading, error, empty, success)
 6. Every `useEffect` with async work has cleanup
 7. Every error path has user-facing feedback
@@ -430,12 +430,80 @@ describe('UserList', () => {
 When reviewing code, score each finding 0-100. Only surface findings at 85+ confidence. This prevents noise and focuses review on real issues.
 
 Severity levels:
-- **Critical** — security vulnerability, data loss, crash. Must fix before merge.
-- **High** — logic bug, accessibility failure, missing error handling. Should fix.
-- **Medium** — performance issue, architectural concern, maintainability. Consider fixing.
-- **Low** — naming, style preference, minor improvement. Optional.
+- **Critical.** Security vulnerability, data loss, crash. Must fix before merge.
+- **High.** Logic bug, accessibility failure, missing error handling. Should fix.
+- **Medium.** Performance issue, architectural concern, maintainability. Consider fixing.
+- **Low.** Naming, style preference, minor improvement. Optional.
 
 Verdict:
-- **Ready to Merge** — no Critical or High issues
-- **Needs Attention** — Medium issues found
-- **Needs Work** — Critical or High issues found
+- **Ready to Merge.** No Critical or High issues
+- **Needs Attention.** Medium issues found
+- **Needs Work.** Critical or High issues found
+
+---
+
+## THE DURABILITY LADDER FOR TYPE-LEVEL CONSTRAINTS
+
+The rules above tell you what TypeScript patterns to use. This section tells you the meta-principle those patterns serve: every constraint that protects correctness should be encoded at the highest tier the type system supports, and only fall to a lower tier when the higher tier genuinely cannot carry it.
+
+The ladder, ranked by ability to survive consumer turnover, codebase growth, and AI-agent-assisted refactoring:
+
+1. **Type-level constraint.** The compiler refuses to mix incompatible categories of data. Discriminated unions for state. Branded types for validated values. Exhaustiveness checks via `assertNever` on every switch over a union. Enforced at build time; no consumer can bypass without writing a cast that is visible in code review.
+2. **Runtime invariant.** A contract check at a module boundary that fires when the assumption is violated, with a stack trace pointing at the violation site. Used when the constraint is mechanically checkable but only at runtime.
+3. **Test as executing context.** A regression test named for the constraint it protects, which fails in CI if someone changes the code without understanding the assumption. Documentation that runs.
+4. **Name with semantic load.** `MAX_BSA_REPORTABLE_TRANSFER_USD` survives the deletion of any comment because the name itself carries the meaning. `MAX_AMOUNT` does not. Anonymous magic numbers are findings, not acceptable defaults.
+5. **Comment with link to source.** The fallback when nothing higher works. Used for regulatory citations, links to incident post-mortems, vendor SLA references. Treated as a known-leaky mechanism; minimized.
+
+A type-level constraint can be silently weakened only by a code change that produces a compile error. A runtime invariant can be silently weakened only by a code change that produces a test failure. A comment can be silently deleted by a "cleanup" PR. The ladder makes this asymmetry explicit and chooses accordingly.
+
+## BRANDED TYPES CARRY CONSTRAINTS PAST THE NARROWING
+
+A discriminated union prevents consumers from accessing the narrowed data without checking the discriminant. It does not prevent consumers from extracting the narrowed data and passing the raw underlying type to downstream code. A branded type closes that gap.
+
+```typescript
+type Brand<T, B> = T & { readonly __brand: B };
+type ValidatedFile = Brand<File, 'ValidatedFile'>;
+
+function uploadToS3(file: ValidatedFile): Promise<UploadResult> { ... }
+
+// A raw File cannot be passed to uploadToS3.
+// The type system enforces the validation boundary across consumer turnover.
+```
+
+The standard objection: `someFile as ValidatedFile` bypasses the boundary. That is the point. The cast is visible in code review; a reviewer can `grep` for `as ValidatedFile` and ask why this code thinks it has a validated file. The cast is not impossible; it is visible.
+
+Use branded types for: input that has crossed a security or validation boundary, IDs of different domains that must not be confused (UserId vs OrderId), units that must not be mixed (Milliseconds vs Seconds), and any value where the type system can carry a constraint the consumer would otherwise have to remember. The dev.to article on file validation as a security boundary walks through the discipline applied to a specific worked example.
+
+## EXHAUSTIVENESS CHECKS ARE MANDATORY ON UNIONS
+
+Every switch over a discriminated union ends with a `default` branch that calls `assertNever`:
+
+```typescript
+function assertNever(value: never): never {
+  throw new Error(`Unhandled variant: ${JSON.stringify(value)}`);
+}
+
+switch (result.status) {
+  case 'valid': return handleValid(result);
+  case 'rejected': return handleRejected(result);
+  // ... other cases
+  default: return assertNever(result);
+}
+```
+
+When a new variant is added, every consumer that omits it produces a compile error at the exact line where the new case must be handled. The compiler becomes the audit trail. Without exhaustiveness checking, new variants ship silently; consumers continue compiling and start returning `undefined` from the missed case. The cost of `assertNever` is two lines per switch. The cost of not adding it is incident response.
+
+## DECISION CONTEXT IN CODE-SPECIFIC FORMS
+
+Decision context (the why behind a non-obvious choice) is encoded at the highest durability tier from the ladder above. Specific rules:
+
+- A magic number without a name or test attached is a finding. Either it gets a semantic-loaded name, a regression test that protects it, or both.
+- A retry, timeout, or threshold value tuned to an external constraint must reference the constraint in its name or in a one-line pointer to an ADR. `PAYMENT_TIMEOUT_AT_1_5X_PROVIDER_SLA_MS` carries the math; `PAYMENT_TIMEOUT_MS` does not.
+- A regex or parsing pattern derived from a spec carries a one-line comment with the spec reference: `// per RFC 5322 section 3.4.1`. Comments are the right mechanism for content that is irreducibly textual and external.
+- A branded type or discriminated union variant is itself decision context. The type's name and structure encode the reasoning for treating this data as a distinct category.
+
+The rule: if a value or pattern in the code carries reasoning that the next reader cannot reconstruct from the local code alone, the reasoning is preserved at the highest available durability tier, or the code does not ship.
+
+---
+
+These standards extend the rules above with the discipline of where each rule sits on the durability ladder. The patterns from the prior sections (no `any`, strict flags, discriminated unions for state) are the implementation. The discipline in this section is the meta-principle those patterns serve.
